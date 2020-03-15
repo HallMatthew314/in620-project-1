@@ -30,19 +30,15 @@ void setup() {
     buttonPressed = false;
 
     // Interrupt when the button is pressed.
-    attachInterrupt(digitalPinToInterrupt(BUTTON), buttonPressActions, LOW);
+    attachInterrupt(digitalPinToInterrupt(BUTTON), buttonPressActions, FALLING);
 }
 
 void loop() {
     if(buttonPressed){
-        noInterrupts();
-
         digitalWrite(LED_BUILTIN, HIGH);
         delay(2000);
         digitalWrite(LED_BUILTIN, LOW);
         buttonPressed = false;
-
-        interrupts();
     }
     else{
         nextLED();
