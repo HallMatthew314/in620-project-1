@@ -35,9 +35,13 @@ void setup() {
 
 void loop() {
     if(buttonPressed){
-        digitalWrite(LED_BUILTIN, HIGH);
-        delay(2000);
-        digitalWrite(LED_BUILTIN, LOW);
+        digitalWrite(LED_BUILTIN, HIGH); // Testing
+
+        delay(3000);
+        digitalWrite(currentLED, LOW);
+        delay(800);
+
+        digitalWrite(LED_BUILTIN, LOW); // Testing
         buttonPressed = false;
     }
     else{
