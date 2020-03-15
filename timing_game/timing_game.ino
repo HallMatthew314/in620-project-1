@@ -10,6 +10,8 @@ bool buttonPressed;
 
 void setup() {
 
+    // Initialise RNG
+    randomSeed(analogRead(A6));
     // For testing interrupts
     pinMode(LED_BUILTIN, OUTPUT);
 
@@ -41,12 +43,34 @@ void loop() {
         digitalWrite(currentLED, LOW);
         delay(800);
 
+        // Choose a new starting LED.
+        randomLED();
+
         digitalWrite(LED_BUILTIN, LOW); // Testing
         buttonPressed = false;
     }
     else{
         nextLED();
         delay(pauseLength);
+    }
+}
+
+void randomLED(){
+    currentLED = random(LED_START, LED_END + 1);
+
+    // We have to move up from the first LED.
+    if(currentLED == LED_START){
+        movingUp = true;
+    }
+    // We have to move down from the last LED.
+    else if(currentLED == LED_END){
+        movingUp = false;
+    }
+    // We can go either way for the other LEDs, so flip a coin.
+    else{
+        // random(2) returns either 1 or 0,
+        // so true or false ~50% of the time.
+        movingUp = random(2) == 0;
     }
 }
 
