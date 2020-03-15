@@ -28,20 +28,17 @@ void loop() {
 
 void nextLED(){
 
+    // Turn off the the current LED
     digitalWrite(currentLED, LOW);
-  
-    if(movingUp){
-        ++currentLED;
-        if(currentLED == LED_END){
-            movingUp = false;
-        }
-    }
-    else{
-        --currentLED;
-        if(currentLED == LED_START){
-            movingUp = true;
-        }
+
+    // Move the currentLED variable to the next LED.
+    movingUp ? ++currentLED : --currentLED;
+
+    // Change direction if we have reached the ned of the row.
+    if(currentLED == LED_START || currentLED == LED_END){
+        movingUp = !movingUp;
     }
 
+    // Turn on the next LED
     digitalWrite(currentLED, HIGH);
 }
