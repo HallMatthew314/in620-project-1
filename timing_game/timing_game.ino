@@ -13,7 +13,7 @@ int currentLED;
 bool movingUp;
 bool buttonPressed;
 
-void setup(void) {
+void setup(void){
 
 	// Initialise RNG
 	randomSeed(analogRead(A6));
@@ -32,6 +32,7 @@ void setup(void) {
 	currentLED = LED_START + 1;
 	movingUp = false;
 
+	// Variable initialization.
 	pauseLength = START_SPEED;
 	buttonPressed = false;
 
@@ -39,43 +40,51 @@ void setup(void) {
 	attachInterrupt(digitalPinToInterrupt(BUTTON), buttonPressActions, FALLING);
 }
 
-void loop() {
+void loop(){
+	// Secondary Loop:
+	// If the button has been pressed, check if the player won.
 	if(buttonPressed){
 		// Change the speed, based on whether or not the player won.
 		changeSpeed();
 
+		// Play the win jingle if the player stopped on the middle LED.
 		if(currentLED == LED_MIDDLE){
 			winJingle();
 		}
+		// Otherwise, play the lose jingle.
 		else{
 			loseJingle();
 		}
 
-		// Show the player which LED they stopped at.
-		delay(1200);
+		// Wait for a moment before starting the next round.
+		delay(1000);
 
-		// Turn of the LED before the next round.
+		// Turn off the LED before the next round.
 		digitalWrite(currentLED, LOW);
 		delay(800);
 
 		// Choose a new starting LED.
 		randomLED();
 
-		// Go back to main loop.
+		// Go back to the main loop.
 		buttonPressed = false;
 	}
+	// Main Loop:
+	// Move the LED up and down.
 	else{
 		// Move to the next LED.
 		nextLED();
+		// Give the player time to press the button.
 		delay(pauseLength);
 	}
 }
 
+// Chooses a random LED and direction to move.
 void randomLED(){
+	// Pick new LED.
 	currentLED = random(LED_START, LED_END + 1);
 
 	// We have to move up from the first LED.
-	// Test comment
 	if(currentLED == LED_START){
 		movingUp = true;
 	}
@@ -91,6 +100,8 @@ void randomLED(){
 	}
 }
 
+// Moves the current LED up or down by one,
+// changing the direction to move if we're at the end of the row.
 void nextLED(){
 	noInterrupts();
 
@@ -124,32 +135,49 @@ void changeSpeed(){
 
 // Plays a short melody of an arpeggiated C major chord.
 void winJingle(){
+	// C (ish)
 	tone(BUZZER, 261);
 	delay(150);
+
+	// E (ish)
 	tone(BUZZER, 329);
 	delay(150);
+
+	// G
 	tone(BUZZER, 392);
 	delay(150);
+
+	// C (ish)
 	tone(BUZZER, 523);
 	delay(450);
 
+	// Turn off the buzzer.
 	noTone(BUZZER);
 }
 
 // Plays a short melody of notes chromatically descending from C to A.
 void loseJingle(){
+	// C (ish)
 	tone(BUZZER, 261);
 	delay(150);
+
+	// B (ish)
 	tone(BUZZER, 246);
 	delay(150);
+
+	// Bb(ish)
 	tone(BUZZER, 233);
 	delay(150);
+
+	// A
 	tone(BUZZER, 220);
 	delay(450);
 
+	// Turn off the buzzer.
 	noTone(BUZZER);
 }
 
+// Interrupt handler, moves to the secondary loop.
 void buttonPressActions(){
 	buttonPressed = true;
 }
