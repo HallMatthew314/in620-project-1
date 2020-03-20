@@ -2,6 +2,7 @@ const int LED_START = 6;
 const int LED_MIDDLE = 9;
 const int LED_END = 12;
 const int BUTTON = 2;
+const int BUZZER = 5;
 const int START_SPEED = 210;
 const int SPEED_CHANGE = 30;
 const int MINIMUM_SPEED = 30;
@@ -12,18 +13,17 @@ int currentLED;
 bool movingUp;
 bool buttonPressed;
 
-void setup() {
+void setup(void) {
 
 	// Initialise RNG
 	randomSeed(analogRead(A6));
-	// For testing interrupts
-	pinMode(LED_BUILTIN, OUTPUT);
 
 	// Configure pins
 	for(int i = LED_START; i <= LED_END; ++i){
 		pinMode(i, OUTPUT);
 	}
 
+	pinMode(BUZZER, OUTPUT);
 	pinMode(BUTTON, INPUT_PULLUP);
 
 	// Start on the first LED.
@@ -44,8 +44,15 @@ void loop() {
 		// Change the speed, based on whether or not the player won.
 		changeSpeed();
 
+		if(currentLED == LED_MIDDLE){
+			winJingle();
+		}
+		else{
+			loseJingle();
+		}
+
 		// Show the player which LED they stopped at.
-		delay(3000);
+		delay(1200);
 
 		// Turn of the LED before the next round.
 		digitalWrite(currentLED, LOW);
@@ -113,6 +120,34 @@ void changeSpeed(){
 	else if(currentLED != LED_MIDDLE && pauseLength < MAXIMUM_SPEED){
 		pauseLength += SPEED_CHANGE;
 	}
+}
+
+// Plays a short melody of an arpeggiated C major chord.
+void winJingle(){
+	tone(BUZZER, 261);
+	delay(150);
+	tone(BUZZER, 329);
+	delay(150);
+	tone(BUZZER, 392);
+	delay(150);
+	tone(BUZZER, 523);
+	delay(450);
+
+	noTone(BUZZER);
+}
+
+// Plays a short melody of notes chromatically descending from C to A.
+void loseJingle(){
+	tone(BUZZER, 261);
+	delay(150);
+	tone(BUZZER, 246);
+	delay(150);
+	tone(BUZZER, 233);
+	delay(150);
+	tone(BUZZER, 220);
+	delay(450);
+
+	noTone(BUZZER);
 }
 
 void buttonPressActions(){
