@@ -7,24 +7,26 @@ const int START_SPEED = 210;
 const int SPEED_CHANGE = 30;
 const int MINIMUM_SPEED = 30;
 const int MAXIMUM_SPEED = 300;
+const int WIN_JINGLE[] = {261, 329, 392, 523};
+const int LOSE_JINGLE[] = {261, 246, 233, 220};
 
 int pauseLength;
 int currentLED;
 bool movingUp;
 bool buttonPressed;
+bool playerHasWon;
 
 void setup(void){
-
 	// Initialise RNG
 	randomSeed(analogRead(A6));
 
 	// Configure pins
+	pinMode(BUZZER, OUTPUT);
+	pinMode(BUTTON, INPUT_PULLUP);
+
 	for(int i = LED_START; i <= LED_END; ++i){
 		pinMode(i, OUTPUT);
 	}
-
-	pinMode(BUZZER, OUTPUT);
-	pinMode(BUTTON, INPUT_PULLUP);
 
 	// Start on the first LED.
 	// This is actually the second LED, but the
@@ -35,26 +37,24 @@ void setup(void){
 	// Variable initialization.
 	pauseLength = START_SPEED;
 	buttonPressed = false;
+	playerHasWon = false;
 
 	// Interrupt when the button is pressed.
 	attachInterrupt(digitalPinToInterrupt(BUTTON), buttonPressActions, FALLING);
 }
 
-void loop(){
+void loop(void){
 	// Secondary Loop:
 	// If the button has been pressed, check if the player won.
 	if(buttonPressed){
+		// Check if the player won or not.
+		playerHasWon = currentLED == LED_MIDDLE;
+
 		// Change the speed, based on whether or not the player won.
 		changeSpeed();
 
-		// Play the win jingle if the player stopped on the middle LED.
-		if(currentLED == LED_MIDDLE){
-			winJingle();
-		}
-		// Otherwise, play the lose jingle.
-		else{
-			loseJingle();
-		}
+		// Play the appropriate jingle.
+		playJingle();
 
 		// Wait for a moment before starting the next round.
 		delay(1000);
@@ -80,7 +80,7 @@ void loop(){
 }
 
 // Chooses a random LED and direction to move.
-void randomLED(){
+void randomLED(void){
 	// Pick new LED.
 	currentLED = random(LED_START, LED_END + 1);
 
@@ -102,7 +102,7 @@ void randomLED(){
 
 // Moves the current LED up or down by one,
 // changing the direction to move if we're at the end of the row.
-void nextLED(){
+void nextLED(void){
 	noInterrupts();
 
 	// Turn off the the current LED
@@ -122,62 +122,39 @@ void nextLED(){
 	interrupts();
 }
 
-void changeSpeed(){
+void changeSpeed(void){
 	// Speed up if the player won, up to the fastest speed.
-	if(currentLED == LED_MIDDLE && pauseLength > MINIMUM_SPEED){
+	if(playerHasWon && pauseLength > MINIMUM_SPEED){
 		pauseLength -= SPEED_CHANGE;
 	}
 	// Slow down if the player lost,  up to the slowest speed.
-	else if(currentLED != LED_MIDDLE && pauseLength < MAXIMUM_SPEED){
+	else if(!playerHasWon && pauseLength < MAXIMUM_SPEED){
 		pauseLength += SPEED_CHANGE;
 	}
 }
 
-// Plays a short melody of an arpeggiated C major chord.
-void winJingle(){
-	// C (ish)
-	tone(BUZZER, 261);
+// Plays one of two jingles based on
+// whether or not the player has won.
+void playJingle(void){
+	// Decide which jingle to use.
+	int *jingle = playerHasWon ? WIN_JINGLE : LOSE_JINGLE;
+
+	tone(BUZZER, jingle[0]);
 	delay(150);
 
-	// E (ish)
-	tone(BUZZER, 329);
+	tone(BUZZER, jingle[1]);
 	delay(150);
 
-	// G
-	tone(BUZZER, 392);
+	tone(BUZZER, jingle[2]);
 	delay(150);
 
-	// C (ish)
-	tone(BUZZER, 523);
+	tone(BUZZER, jingle[3]);
 	delay(450);
 
-	// Turn off the buzzer.
-	noTone(BUZZER);
-}
-
-// Plays a short melody of notes chromatically descending from C to A.
-void loseJingle(){
-	// C (ish)
-	tone(BUZZER, 261);
-	delay(150);
-
-	// B (ish)
-	tone(BUZZER, 246);
-	delay(150);
-
-	// Bb(ish)
-	tone(BUZZER, 233);
-	delay(150);
-
-	// A
-	tone(BUZZER, 220);
-	delay(450);
-
-	// Turn off the buzzer.
 	noTone(BUZZER);
 }
 
 // Interrupt handler, moves to the secondary loop.
-void buttonPressActions(){
+void buttonPressActions(void){
 	buttonPressed = true;
 }
